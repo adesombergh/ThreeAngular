@@ -1,11 +1,11 @@
 <div class="toolbar">
   <div class="toolbar-item">
     <a href="#" id="move" class="hide">Move</a>
-    <a href="#" id="rotate">Rotate</a>
+    <a href="#" (click)="callChangeEditMode()">{{ nextMode }}</a>
   </div>
   <div class="toolbar-separator"></div>
   <div class="toolbar-item">
-    <a href="#" id="add" (click)="callAddMod()">Add</a>
+    <a href="#" (click)="callAddMod()">Add</a>
   </div>
   <div class="toolbar-item">
     <a href="#" id="clone">Duplicate</a>

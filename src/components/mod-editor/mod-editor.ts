@@ -40,6 +40,7 @@ export class ModEditorComponent implements AfterViewInit {
     private canvasRef: ElementRef;
   
     constructor() {
+      this.addObject = this.addObject.bind(this);
       this.render = this.render.bind(this);
     }
   
@@ -63,16 +64,12 @@ export class ModEditorComponent implements AfterViewInit {
         depthTest: true,
         depthWrite: true
       });
-      var cube = new THREE.Mesh(geometry, material)
-      cube.receiveShadow = true;
-      cube.castShadow = true;
-      cube.position.set(0, 2.5, 0);
-      this.addObject(cube);
     }
   
     private addObject(obj) {
       this.objects.push(obj);
       this.scene.add(obj);
+      this.render();
     }
   
     private createHelpers() {
@@ -109,11 +106,11 @@ export class ModEditorComponent implements AfterViewInit {
       light.intensity = 2.06;
       this.scene.add(light);
   
-      var light = new THREE.PointLight(0xffffff);
-      light.position.set(40, 250, 40);
-      light.intensity = 1.24;
-      light.castShadow = true;
-      this.scene.add(light);
+      var light2 = new THREE.PointLight(0xffffff);
+      light2.position.set(40, 250, 40);
+      light2.intensity = 1.24;
+      light2.castShadow = true;
+      this.scene.add(light2);
     }
   
     private createCamera() {
@@ -169,7 +166,6 @@ export class ModEditorComponent implements AfterViewInit {
       this.transformControls.setSpace( 'local' );
       var fakeWorld = this;
       this.transformControls.addEventListener('change', function (evt) {
-        var object = this.object;
         if ( this.object !== undefined ) {
           fakeWorld.selectionBox.setFromObject( this.object );
         }
@@ -240,19 +236,18 @@ export class ModEditorComponent implements AfterViewInit {
       }
     }
   
+    changeEditMode(mode){
+      if (mode==="Rotate") mode = "rotate";
+      if (mode==="Move") mode = "translate";
+      this.transformControls.setMode(mode);
+    }
+
     addMod(){
       console.log('Adding Mod');
-      let self = this;
       var loader = new THREE.ObjectLoader();
       loader.load(
         '../assets/MODs.json',
-        function ( obj ) {
-          console.log('ADDED');
-          self.scene.add(obj);
-          self.objects.push(obj);
-          self.render();
-        },
-          // onProgress callback
+        this.addObject,
         function ( xhr ) {
           console.log('Loading');
         },
