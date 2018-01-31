@@ -3,10 +3,9 @@ import * as THREE from 'three';
 import "./EnableThree.js";
 
 import "three/examples/js/controls/OrbitControls";
-import "three/src/loaders/ObjectLoader";
 import "three/examples/js/controls/TransformControls";
 
-import { SceneService } from './scene.service';
+import { TheEditorService } from './the-editor.service';
 
 @Component({
   selector: 'the-matrix',
@@ -15,14 +14,9 @@ import { SceneService } from './scene.service';
 
 export class TheMatrix implements AfterViewInit {
   private renderer: THREE.WebGLRenderer;
-  private camera: THREE.PerspectiveCamera;
-  public scene: THREE.Scene;
-  public sceneHelpers: THREE.Scene;
-
-  public box: THREE.Box3 = new THREE.Box3();
-  public selectionBox: THREE.BoxHelper = new THREE.BoxHelper();
 
   public controls: THREE.OrbitControls;
+  private transformControls: THREE.TransformControls;
 
   private onDownPosition: THREE.Vector2 = new THREE.Vector2();
   private onUpPosition: THREE.Vector2 = new THREE.Vector2();
@@ -30,86 +24,136 @@ export class TheMatrix implements AfterViewInit {
 
   private raycaster: THREE.Raycaster = new THREE.Raycaster();
   private mouse: THREE.Vector2 = new THREE.Vector2();
+  
 
-  private objects: Array<any> = [];
-
-  private transformControls: THREE.TransformControls;
-
-  @ViewChild('theCanvas')
-  private canvasRef: ElementRef;
-
-  constructor() {
-    this.addObject = this.addObject.bind(this);
+  /**
+   * Defines the HTML CANVAS in which we inject The Matrix
+   */
+  constructor( private theEditor: TheEditorService ) {
     this.render = this.render.bind(this);
+    theEditor.reload$.subscribe(()=> {
+      this.render();
+    })
   }
 
+  /**
+   * Defines the HTML CANVAS in which we inject The Matrix
+   */
+  @ViewChild('theCanvas') private theCanvas: ElementRef;
   private get canvas(): HTMLCanvasElement {
-    return this.canvasRef.nativeElement;
+    return this.theCanvas.nativeElement;
   }
 
-  private createScene() {
-    this.scene = new THREE.Scene();
-    this.scene.name = 'Scene';
-    this.scene.background = new THREE.Color(0xaaaaaa);
+  /**
+   * Making The Matrix a better world!
+   */
+  public render() {
+    this.theEditor.sceneHelpers.updateMatrixWorld();
+    this.theEditor.scene.updateMatrixWorld();
+    this.renderer.render(this.theEditor.scene, this.theEditor.camera);
+    this.renderer.render(this.theEditor.sceneHelpers, this.theEditor.camera);
   }
 
-  private addObject(obj) {
-    this.objects.push(obj);
-    this.scene.add(obj);
+  /**
+   * Recalculate Aspect Ratio when the window resizes. Otherwise everything would look streched or crushed.
+   */
+  @HostListener('window:resize', ['$event'])
+  public onResize(event: Event) {
+    this.canvas.style.width = "100%";
+    this.canvas.style.height = "100%";
+
+    this.theEditor.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+    this.theEditor.camera.updateProjectionMatrix();
+    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
     this.render();
   }
 
-  private createHelpers() {
-    this.sceneHelpers = new THREE.Scene();
-
-    var grid = new THREE.GridHelper(400, 100, 0xbbbbbb, 0x888888);
-    this.sceneHelpers.add(grid);
-
-
-    this.selectionBox.material.depthTest = false;
-    this.selectionBox.material.transparent = true;
-    this.selectionBox.visible = false;
-    this.sceneHelpers.add( this.selectionBox );
+  /**
+   * Calculates mouse position relatively to theMatrix
+   */
+  public getMousePosition( dom, x, y ) {
+    var rect = dom.getBoundingClientRect();
+    return [ ( x - rect.left ) / rect.width, ( y - rect.top ) / rect.height ];
   }
 
-  private createFloor() {
-    var geometry = new THREE.PlaneBufferGeometry(400, 400, 1, 1);
-    var material = new THREE.MeshStandardMaterial({
-      color: 0xdddddd,
-      side: THREE.DoubleSide,
-      roughness: .9,
-      metalness: .58
-    });
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.name = 'the_floor';
-    mesh.rotation.x = Math.PI / 2;
-    mesh.receiveShadow = true;
-    this.scene.add(mesh);
+  /**
+   * Stocks mouse position as vector on incoming click
+   */
+  public onMouseDown(event: MouseEvent) {
+    var array = this.getMousePosition( this.canvas, event.clientX, event.clientY );
+    this.onDownPosition.fromArray( array );
   }
 
-  private createLight() {
-    var light = new THREE.AmbientLight(0xefebd8);
-    light.position.y = 1000;
-    light.intensity = 2.06;
-    this.scene.add(light);
-
-    var light2 = new THREE.PointLight(0xffffff);
-    light2.position.set(40, 250, 40);
-    light2.intensity = 1.24;
-    light2.castShadow = true;
-    this.scene.add(light2);
+  /**
+   * Stocks mouse position as vector on outgoing click then...
+   */
+  public onMouseUp( event ) {
+    var array = this.getMousePosition( this.canvas, event.clientX, event.clientY );
+    this.onUpPosition.fromArray( array );
+    this.handleClick();
   }
 
-  private createCamera() {
-    var aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-    this.camera = new THREE.PerspectiveCamera(50, aspect, 0.01, 1000);
-    this.camera.name = "Camera";
-    // Set position and look at
-    this.camera.position.set(100, 60, 100);
-    this.camera.lookAt(new THREE.Vector3(0, 25, 0));
+  /**
+   * What to do on Click
+   */
+  private handleClick() {
+    // If mouseDown and mouseUp were in the same place (means it's a short click)
+    if ( this.onDownPosition.distanceTo( this.onUpPosition ) === 0 ) {
+      var intersects = this.getIntersects( this.onUpPosition, this.theEditor.objects );
+      if ( intersects.length > 0 ) {
+        var object = intersects[ 0 ].object;
+        this.theEditor.select( object );
+      } else {
+        this.theEditor.select( null );
+      }
+      this.render();
+    }
   }
 
-  private startRendering() {
+  /**
+   * Send a virtual LASER BEAM to determine which objects are in the mouse path
+   */
+  private getIntersects( point, objects ) {
+    this.mouse.set( ( point.x * 2 ) - 1, - ( point.y * 2 ) + 1 );
+    this.raycaster.setFromCamera( this.mouse, this.theEditor.camera );
+    return this.raycaster.intersectObjects( objects );
+  }
+
+
+  /**
+   * Enable Moving inside The Matrix
+   */
+  public addOrbitControls() {
+    this.controls = new THREE.OrbitControls(this.theEditor.camera);
+    this.controls.rotateSpeed = 1.0;
+    this.controls.zoomSpeed = 1.2;
+    this.controls.addEventListener('change', this.render);
+  }
+
+  /**
+   * Give us power to control The Matrix
+   */
+  public addTransformControls() {
+    this.transformControls = new THREE.TransformControls(this.theEditor.camera, this.canvas);
+    this.transformControls.setTranslationSnap( 2 );
+    this.transformControls.setRotationSnap( THREE.Math.degToRad( 45 ) );
+    this.transformControls.setSpace( 'local' );
+
+    let TheMatrix: TheMatrix = this; // Hacking the system...
+    this.transformControls.addEventListener('change', function (evt) {
+      if ( this.object !== undefined ) {
+        TheMatrix.theEditor.selectionBox.setFromObject( this.object );
+      }
+      TheMatrix.render();
+    } );
+
+    this.theEditor.sceneHelpers.add( this.transformControls );
+  }
+
+  /**
+   * Start Rendering The Matrix
+   */
+  private dodgeThis() {
     this.renderer = new THREE.WebGLRenderer({
       canvas: this.canvas,
       antialias: true,
@@ -117,8 +161,8 @@ export class TheMatrix implements AfterViewInit {
     this.canvas.style.width = "100%";
     this.canvas.style.height = "100%";
 
-    this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-    this.camera.updateProjectionMatrix();
+    this.theEditor.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+    this.theEditor.camera.updateProjectionMatrix();
     this.renderer.setPixelRatio(devicePixelRatio);
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
 
@@ -127,134 +171,20 @@ export class TheMatrix implements AfterViewInit {
     this.renderer.setClearColor(0xffffff, 1);
     this.renderer.autoClear = false;
 
-    let component: TheMatrix = this;
-
+    let TheMatrix: TheMatrix = this;
     (function render() {
-      component.render();
+      TheMatrix.render();
     }());
+
+    this.addOrbitControls();
+    this.addTransformControls(); 
   }
 
-  public render() {
-    this.sceneHelpers.updateMatrixWorld();
-    this.scene.updateMatrixWorld();
-    this.renderer.render(this.scene, this.camera);
-    this.renderer.render(this.sceneHelpers, this.camera);
-  }
-
-  public addControls() {
-    this.controls = new THREE.OrbitControls(this.camera);
-    this.controls.rotateSpeed = 1.0;
-    this.controls.zoomSpeed = 1.2;
-    this.controls.addEventListener('change', this.render);
-
-    this.transformControls = new THREE.TransformControls(this.camera, this.canvas);
-    this.transformControls.setTranslationSnap( 2 );
-    this.transformControls.setRotationSnap( THREE.Math.degToRad( 45 ) );
-    this.transformControls.setSpace( 'local' );
-    var fakeWorld = this;
-    this.transformControls.addEventListener('change', function (evt) {
-      if ( this.object !== undefined ) {
-        fakeWorld.selectionBox.setFromObject( this.object );
-      }
-      fakeWorld.render();
-    } );
-    this.sceneHelpers.add( this.transformControls );
-  }
-
-  @HostListener('window:resize', ['$event'])
-  public onResize(event: Event) {
-    this.canvas.style.width = "100%";
-    this.canvas.style.height = "100%";
-
-    this.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-    this.camera.updateProjectionMatrix();
-    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
-    this.render();
-  }
-
-  public getMousePosition( dom, x, y ) {
-    var rect = dom.getBoundingClientRect();
-    return [ ( x - rect.left ) / rect.width, ( y - rect.top ) / rect.height ];
-  }
-
-  public onMouseDown(event: MouseEvent) {
-    event.preventDefault();
-    var array = this.getMousePosition( this.canvas, event.clientX, event.clientY );
-    this.onDownPosition.fromArray( array );
-  }
-
-  public onMouseUp( event ) {
-    let component = this;
-    var array = component.getMousePosition( this.canvas, event.clientX, event.clientY );
-    this.onUpPosition.fromArray( array );
-    this.handleClick();
-  }
-
-  private getIntersects( point, objects ) {
-    this.mouse.set( ( point.x * 2 ) - 1, - ( point.y * 2 ) + 1 );
-    this.raycaster.setFromCamera( this.mouse, this.camera );
-    return this.raycaster.intersectObjects( objects );
-  }
-
-  private handleClick() {
-    // Si le mouseDown et le mouseUp sont au même endroit  = click sec
-    if ( this.onDownPosition.distanceTo( this.onUpPosition ) === 0 ) {
-      var intersects = this.getIntersects( this.onUpPosition, this.objects );
-      if ( intersects.length > 0 ) {
-        var object = intersects[ 0 ].object;
-        this.select( object );
-      } else {
-        this.select( null );
-      }
-      this.render();
-    }
-  }
-
-  private select( obj ) {
-    this.selectionBox.visible = false;
-    this.transformControls.detach();
-    if ( obj !== null && obj !== this.scene && obj !== this.camera ) {
-      this.box.setFromObject( obj );
-      if ( this.box.isEmpty() === false ) {
-        this.selectionBox.setFromObject( obj );
-        this.selectionBox.visible = true;
-        this.transformControls.attach( obj );
-      }
-    }
-  }
-
-  changeEditMode(mode){
-    if (mode==="Rotate") mode = "rotate";
-    if (mode==="Move") mode = "translate";
-    this.transformControls.setMode(mode);
-  }
-
-  addMod(){
-    console.log('Adding Mod');
-    var loader = new THREE.ObjectLoader();
-    loader.load(
-      '../assets/MODs.json',
-      this.addObject,
-      function ( xhr ) {
-        console.log('Loading');
-      },
-      // onError callback
-      function( err ) {
-        console.log( 'An error happened' );
-        console.error(err);
-      }
-    );
-
-  }
-
+  /**
+   * Lock and Load
+   */
   ngAfterViewInit() {
-    this.createScene();
-    this.createHelpers();
-    this.createFloor();
-    this.createLight();
-    this.createCamera();
-    this.startRendering();
-    this.addControls();
+    this.dodgeThis(); // Start the Matrix
   }
 
 }
