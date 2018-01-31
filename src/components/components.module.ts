@@ -1,11 +1,9 @@
 import { NgModule } from '@angular/core';
-import { ModEditorComponent } from './mod-editor/mod-editor';
-import { ToolbarComponent } from './toolbar/toolbar';
+
 @NgModule({
-	declarations: [ModEditorComponent,
-    ToolbarComponent],
+	declarations: [],
 	imports: [],
-	exports: [ModEditorComponent,
-    ToolbarComponent]
+	exports: []
 })
+
 export class ComponentsModule {}

@@ -7,7 +7,7 @@ import { StatusBar } from '@ionic-native/status-bar';
 import { MyApp } from './app.component';
 import { HomePage } from '../pages/home/home';
 
-import { ComponentsModule } from '../components/components.module'
+import { ThreeAngular } from '../threeAngular/threeAngular.module'
 
 @NgModule({
   declarations: [
@@ -17,7 +17,7 @@ import { ComponentsModule } from '../components/components.module'
   imports: [
     BrowserModule,
     IonicModule.forRoot(MyApp),
-    ComponentsModule
+    ThreeAngular
   ],
   bootstrap: [IonicApp],
   entryComponents: [
