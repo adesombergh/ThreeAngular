@@ -1,0 +1,8 @@
+<canvas #theCanvas (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)">
+</canvas>
+<the-toolbar
+    (addMod)="addMod()"
+    (changeEditMode)="changeEditMode($event)"
+    (deleteMod)="deleteMod()"
+>
+</the-toolbar>
