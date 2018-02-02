@@ -9,7 +9,7 @@ import { TheEditorService } from './the-matrix/the-editor.service';
 		TheMatrix,TheToolbar
 	],
 	providers: [
-		TheEditorService
+		TheEditorService,
 	],
 	imports: [],
 	exports: [

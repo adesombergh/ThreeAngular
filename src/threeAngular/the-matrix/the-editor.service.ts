@@ -3,102 +3,71 @@ import { Subject } from 'rxjs/Subject';
 
 import * as THREE from 'three';
 import "./EnableThree.js";
-
 import "three/src/loaders/ObjectLoader";
+
+import { Defaults } from "./defaults";
 
 @Injectable()
 
 export class TheEditorService {
   
+  public defaults = new Defaults;
+
   private theMatrixReloaded = new Subject<any>();
-  public reload$ = this.theMatrixReloaded.asObservable();
-  
+  public theMatrixReloaded$ = this.theMatrixReloaded.asObservable();
+
+  private objectRemoved = new Subject<any>();
+  public objectRemoved$ = this.objectRemoved.asObservable();
+
+  private objSelected = new Subject<any>();
+  public objSelected$ = this.objSelected.asObservable();
+
+  private editModeChanged = new Subject<any>();
+  public editModeChanged$ = this.editModeChanged.asObservable();
+
   public camera: THREE.PerspectiveCamera;
   public scene: THREE.Scene;
   public sceneHelpers: THREE.Scene;
   public loader: THREE.ObjectLoader;
+
   public objects = [];
-  
   private selected = null;
 
-  public selectionBox: THREE.BoxHelper = new THREE.BoxHelper();
+  public editMode = "translate";
+  public nextMode = "Rotate";
+
 
   constructor() {
-    this.igniteCamera();
-    this.igniteHelpers();
-    this.igniteScene();
-    this.igniteTheDream();
+    this.plugMeIn();
 
     this.addObject = this.addObject.bind(this);
   }
 
-
-  public igniteCamera(){
-    this.camera = new THREE.PerspectiveCamera(50, 1, 0.01, 1000);
-    this.camera.name = "TheEye";
-    this.camera.position.set(100, 60, 100);
-    this.camera.lookAt(new THREE.Vector3(0, 25, 0));
+  /**
+   * I need guns, lots of guns.
+   */
+  public plugMeIn(){
+    this.camera = this.defaults.camera;
+    this.scene = this.defaults.scene;
+    this.sceneHelpers = this.defaults.sceneHelpers;
   }
-
-  public igniteHelpers(){
-    this.sceneHelpers = new THREE.Scene();
-  
-    var grid = new THREE.GridHelper(400, 100, 0xbbbbbb, 0x888888);
-    this.sceneHelpers.add(grid);
-
-    this.selectionBox.material.depthTest = false;
-    this.selectionBox.material.transparent = true;
-    this.selectionBox.visible = false;
-    this.sceneHelpers.add( this.selectionBox );
-  }
-
-  public igniteScene() {
-    this.scene = new THREE.Scene();
-    this.scene.name = 'Scene';
-    this.scene.background = new THREE.Color(0xaaaaaa);
-  }
-
-  public igniteTheDream(){
-    //FLOOR
-    var geometry = new THREE.PlaneBufferGeometry(400, 400, 1, 1);
-    var material = new THREE.MeshStandardMaterial({
-      color: 0xdddddd,
-      side: THREE.DoubleSide,
-      roughness: .9,
-      metalness: .58
-    });
-    var mesh = new THREE.Mesh(geometry, material);
-    mesh.name = 'the_floor';
-    mesh.rotation.x = Math.PI / 2;
-    mesh.receiveShadow = true;
-    this.scene.add(mesh);
-
-    //LIGHT 1
-    var light = new THREE.AmbientLight(0xefebd8);
-    light.position.y = 1000;
-    light.intensity = 2.06;
-    this.scene.add(light);
-
-    //LIGHT 2
-    var light2 = new THREE.PointLight(0xffffff);
-    light2.position.set(40, 250, 40);
-    light2.intensity = 1.24;
-    light2.castShadow = true;
-    this.scene.add(light2);
-}
 
   /**
    * Sets a scene. Useful when you need to load a whole scene. This will overwrite current scene.
    */
   public setScene (scene) {
-    // In Here we will set a scene
+		this.scene.uuid = scene.uuid;
+    this.scene.name = scene.name;
+		if ( scene.background !== null ) this.scene.background = scene.background.clone();
+		while ( scene.children.length > 0 ) {
+			this.addObject( scene.children[ 0 ] );
+		}
   }
 
   /**
    * Adds an object to the scene but also to the objects array
    */
   public addObject (object) {
-    // In Here we will add an object
     this.objects.push(object);
     this.scene.add(object);
 
@@ -106,17 +75,42 @@ export class TheEditorService {
   }
 
   /**
+   * Clones an object
+   */
+  public cloneObject () {
+    let clone = this.selected.clone();
+    this.addObject(clone);
+  }
+
+  /**
    * Removes an object from the scene but also from the objects array
    */
   public removeObject (object) {
-    // In Here we will add an object
+    if ( object.parent === null ) return; // avoid deleting the camera or scene
+    object.parent.remove( object );
+    this.objects.splice( this.objects.indexOf( object ), 1 );
+
+    this.objectRemoved.next();
+  }
+
+  /**
+   * Removes the selected object
+   */
+  public removeSelected () {
+		this.removeObject( this.selected );
   }
 
   /**
    * Selects an object from the scene
    */
   public select (object) {
-    // In Here we will select the object
+		if ( this.selected === object ) return;
+		var uuid = null;
+		if ( object !== null ) {
+			uuid = object.uuid;
+		}
+    this.selected = object;
+    this.objSelected.next(object);
   }
 
   /**
@@ -191,7 +185,14 @@ export class TheEditorService {
    * Move or Rotate?
    */
   public changeEditMode (){
-
+    if (this.editMode == "translate") {
+      this.editMode = "rotate"
+      this.nextMode = "Move";
+    } else {
+      this.editMode = "translate"
+      this.nextMode = "Rotate";
+    }
+    this.editModeChanged.next(this.editMode);
   }
 
   /**

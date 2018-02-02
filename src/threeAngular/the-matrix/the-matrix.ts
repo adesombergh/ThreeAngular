@@ -24,17 +24,51 @@ export class TheMatrix implements AfterViewInit {
 
   private raycaster: THREE.Raycaster = new THREE.Raycaster();
   private mouse: THREE.Vector2 = new THREE.Vector2();
-  
+  private selectionBox: THREE.BoxHelper = new THREE.BoxHelper();
+  private box: THREE.Box = new THREE.Box3();
+
 
   /**
-   * Defines the HTML CANVAS in which we inject The Matrix
+   * THE ARCHITECT
    */
   constructor( private theEditor: TheEditorService ) {
     this.render = this.render.bind(this);
-    theEditor.reload$.subscribe(()=> {
-      this.render();
-    })
+
+    theEditor.theMatrixReloaded$.subscribe(()=> { this.render(); })
+    theEditor.objSelected$.subscribe( (obj) => { this.selectObject(obj) } )
+    theEditor.objectRemoved$.subscribe( () => { this.deselect() } )
+    theEditor.editModeChanged$.subscribe( (nextMode) => { this.transformControls.setMode( nextMode ) } )
   }
+
+
+
+  /**
+   * Removes all obj helpers
+   */
+  private deselect() {
+		this.transformControls.detach();
+    this.selectionBox.visible = false;
+    this.render();
+  }
+
+  /**
+   * Adds helpers to selected object
+   */
+  private selectObject(object) {
+    this.selectionBox.visible = false;
+		this.transformControls.detach();
+		if ( object !== null && object !== this.theEditor.scene && object !== this.theEditor.camera ) {
+      this.box.setFromObject( object );
+			if ( this.box.isEmpty() === false ) {
+				this.selectionBox.setFromObject( object );
+				this.selectionBox.visible = true;
+			}
+			this.transformControls.attach( object );
+    }
+
+    this.render();
+  }
+
 
   /**
    * Defines the HTML CANVAS in which we inject The Matrix
@@ -55,16 +89,19 @@ export class TheMatrix implements AfterViewInit {
   }
 
   /**
-   * Recalculate Aspect Ratio when the window resizes. Otherwise everything would look streched or crushed.
-   */
-  @HostListener('window:resize', ['$event'])
-  public onResize(event: Event) {
+   * Calculate Aspect Ratio of The Matrix. Avoids compression and streching of the scene.
+   */  
+  public calculateAspectRatio(){
     this.canvas.style.width = "100%";
     this.canvas.style.height = "100%";
 
     this.theEditor.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
     this.theEditor.camera.updateProjectionMatrix();
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+  }
+
+  @HostListener('window:resize', ['$event'])
+  public onResize(event: Event) {
     this.render();
   }
 
@@ -111,12 +148,22 @@ export class TheMatrix implements AfterViewInit {
   }
 
   /**
-   * Send a virtual LASER BEAM to determine which objects are in the mouse path
+   * Send a virtual LASER BEAM to determine which objects are in the mouse path. Remember it's a 3D World!
    */
   private getIntersects( point, objects ) {
     this.mouse.set( ( point.x * 2 ) - 1, - ( point.y * 2 ) + 1 );
     this.raycaster.setFromCamera( this.mouse, this.theEditor.camera );
     return this.raycaster.intersectObjects( objects );
+  }
+
+  /**
+   * Adds Helpers
+   */
+  private addHelpers() {
+    this.selectionBox.material.depthTest = false;
+    this.selectionBox.material.transparent = true;
+    this.selectionBox.visible = false;
+    this.theEditor.sceneHelpers.add( this.selectionBox );    
   }
 
 
@@ -131,18 +178,18 @@ export class TheMatrix implements AfterViewInit {
   }
 
   /**
-   * Give us power to control The Matrix
+   * Give us power to control objects in The Matrix 
    */
   public addTransformControls() {
     this.transformControls = new THREE.TransformControls(this.theEditor.camera, this.canvas);
     this.transformControls.setTranslationSnap( 2 );
     this.transformControls.setRotationSnap( THREE.Math.degToRad( 45 ) );
-    this.transformControls.setSpace( 'local' );
+    this.transformControls.setSpace( 'world' );
 
     let TheMatrix: TheMatrix = this; // Hacking the system...
     this.transformControls.addEventListener('change', function (evt) {
       if ( this.object !== undefined ) {
-        TheMatrix.theEditor.selectionBox.setFromObject( this.object );
+        TheMatrix.selectionBox.setFromObject( this.object );
       }
       TheMatrix.render();
     } );
@@ -158,26 +205,18 @@ export class TheMatrix implements AfterViewInit {
       canvas: this.canvas,
       antialias: true,
     });
-    this.canvas.style.width = "100%";
-    this.canvas.style.height = "100%";
-
-    this.theEditor.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-    this.theEditor.camera.updateProjectionMatrix();
-    this.renderer.setPixelRatio(devicePixelRatio);
-    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
+    this.calculateAspectRatio();
+    this.addHelpers();
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(0xffffff, 1);
     this.renderer.autoClear = false;
 
-    let TheMatrix: TheMatrix = this;
-    (function render() {
-      TheMatrix.render();
-    }());
-
     this.addOrbitControls();
-    this.addTransformControls(); 
+    this.addTransformControls();
+
+    this.render();
   }
 
   /**

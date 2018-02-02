@@ -1,14 +1,14 @@
 <div class="toolbar">
   <div class="toolbar-item">
     <a href="#" id="move" class="hide">Move</a>
-    <a href="#" (click)="callChangeEditMode()">{{ nextMode }}</a>
+    <a href="#" (click)="callChangeEditMode()">{{ this.theEditor.nextMode }}</a>
   </div>
   <div class="toolbar-separator"></div>
   <div class="toolbar-item">
     <a href="#" (click)="callAddMod()">Add</a>
   </div>
   <div class="toolbar-item">
-    <a href="#" id="clone">Duplicate</a>
+    <a href="#" (click)="callCloneObject()">Clone</a>
   </div>
   <div class="toolbar-item">
     <a href="#">Group</a>
