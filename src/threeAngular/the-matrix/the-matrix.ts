@@ -1,11 +1,11 @@
 import { AfterViewInit,  Component,  ViewChild,  ElementRef, HostListener } from '@angular/core';
 import * as THREE from 'three';
-import "./EnableThree.js";
+import "../EnableThree.js";
 
 import "three/examples/js/controls/OrbitControls";
 import "three/examples/js/controls/TransformControls";
 
-import { TheEditorService } from './the-editor.service';
+import { TheArchitect } from './the-architect.service';
 
 @Component({
   selector: 'the-matrix',
@@ -31,13 +31,13 @@ export class TheMatrix implements AfterViewInit {
   /**
    * THE ARCHITECT
    */
-  constructor( private theEditor: TheEditorService ) {
+  constructor( private theArchitect: TheArchitect ) {
     this.render = this.render.bind(this);
 
-    theEditor.theMatrixReloaded$.subscribe(()=> { this.render(); })
-    theEditor.objSelected$.subscribe( (obj) => { this.selectObject(obj) } )
-    theEditor.objectRemoved$.subscribe( () => { this.deselect() } )
-    theEditor.editModeChanged$.subscribe( (nextMode) => { this.transformControls.setMode( nextMode ) } )
+    theArchitect.theMatrixReloaded$.subscribe(()=> { this.render(); })
+    theArchitect.objSelected$.subscribe( (obj) => { this.selectObject(obj) } )
+    theArchitect.objectRemoved$.subscribe( () => { this.deselect() } )
+    theArchitect.editModeChanged$.subscribe( (nextMode) => { this.transformControls.setMode( nextMode ) } )
   }
 
 
@@ -57,7 +57,7 @@ export class TheMatrix implements AfterViewInit {
   private selectObject(object) {
     this.selectionBox.visible = false;
 		this.transformControls.detach();
-		if ( object !== null && object !== this.theEditor.scene && object !== this.theEditor.camera ) {
+		if ( object !== null && object !== this.theArchitect.scene && object !== this.theArchitect.camera ) {
       this.box.setFromObject( object );
 			if ( this.box.isEmpty() === false ) {
 				this.selectionBox.setFromObject( object );
@@ -82,10 +82,10 @@ export class TheMatrix implements AfterViewInit {
    * Making The Matrix a better world!
    */
   public render() {
-    this.theEditor.sceneHelpers.updateMatrixWorld();
-    this.theEditor.scene.updateMatrixWorld();
-    this.renderer.render(this.theEditor.scene, this.theEditor.camera);
-    this.renderer.render(this.theEditor.sceneHelpers, this.theEditor.camera);
+    this.theArchitect.sceneHelpers.updateMatrixWorld();
+    this.theArchitect.scene.updateMatrixWorld();
+    this.renderer.render(this.theArchitect.scene, this.theArchitect.camera);
+    this.renderer.render(this.theArchitect.sceneHelpers, this.theArchitect.camera);
   }
 
   /**
@@ -95,8 +95,8 @@ export class TheMatrix implements AfterViewInit {
     this.canvas.style.width = "100%";
     this.canvas.style.height = "100%";
 
-    this.theEditor.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
-    this.theEditor.camera.updateProjectionMatrix();
+    this.theArchitect.camera.aspect = this.canvas.clientWidth / this.canvas.clientHeight;
+    this.theArchitect.camera.updateProjectionMatrix();
     this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight);
   }
 
@@ -136,12 +136,12 @@ export class TheMatrix implements AfterViewInit {
   private handleClick() {
     // If mouseDown and mouseUp were in the same place (means it's a short click)
     if ( this.onDownPosition.distanceTo( this.onUpPosition ) === 0 ) {
-      var intersects = this.getIntersects( this.onUpPosition, this.theEditor.objects );
+      var intersects = this.getIntersects( this.onUpPosition, this.theArchitect.objects );
       if ( intersects.length > 0 ) {
         var object = intersects[ 0 ].object;
-        this.theEditor.select( object );
+        this.theArchitect.select( object );
       } else {
-        this.theEditor.select( null );
+        this.theArchitect.select( null );
       }
       this.render();
     }
@@ -152,7 +152,7 @@ export class TheMatrix implements AfterViewInit {
    */
   private getIntersects( point, objects ) {
     this.mouse.set( ( point.x * 2 ) - 1, - ( point.y * 2 ) + 1 );
-    this.raycaster.setFromCamera( this.mouse, this.theEditor.camera );
+    this.raycaster.setFromCamera( this.mouse, this.theArchitect.camera );
     return this.raycaster.intersectObjects( objects );
   }
 
@@ -163,7 +163,7 @@ export class TheMatrix implements AfterViewInit {
     this.selectionBox.material.depthTest = false;
     this.selectionBox.material.transparent = true;
     this.selectionBox.visible = false;
-    this.theEditor.sceneHelpers.add( this.selectionBox );    
+    this.theArchitect.sceneHelpers.add( this.selectionBox );    
   }
 
 
@@ -171,7 +171,7 @@ export class TheMatrix implements AfterViewInit {
    * Enable Moving inside The Matrix
    */
   public addOrbitControls() {
-    this.controls = new THREE.OrbitControls(this.theEditor.camera);
+    this.controls = new THREE.OrbitControls(this.theArchitect.camera);
     this.controls.rotateSpeed = 1.0;
     this.controls.zoomSpeed = 1.2;
     this.controls.addEventListener('change', this.render);
@@ -181,7 +181,7 @@ export class TheMatrix implements AfterViewInit {
    * Give us power to control objects in The Matrix 
    */
   public addTransformControls() {
-    this.transformControls = new THREE.TransformControls(this.theEditor.camera, this.canvas);
+    this.transformControls = new THREE.TransformControls(this.theArchitect.camera, this.canvas);
     this.transformControls.setTranslationSnap( 2 );
     this.transformControls.setRotationSnap( THREE.Math.degToRad( 45 ) );
     this.transformControls.setSpace( 'world' );
@@ -194,7 +194,7 @@ export class TheMatrix implements AfterViewInit {
       TheMatrix.render();
     } );
 
-    this.theEditor.sceneHelpers.add( this.transformControls );
+    this.theArchitect.sceneHelpers.add( this.transformControls );
   }
 
   /**

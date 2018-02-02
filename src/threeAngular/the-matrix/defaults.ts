@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import "./EnableThree.js";
+import "../EnableThree";
 
 export class Defaults {
     public scene: THREE.Scene;

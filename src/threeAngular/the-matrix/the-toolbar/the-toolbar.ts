@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Output } from '@angular/core';
-import { TheEditorService } from '../the-editor.service';
+import { Component } from '@angular/core';
+import { TheArchitect } from '../the-architect.service';
 
 @Component({
   selector: 'the-toolbar',
@@ -7,18 +7,18 @@ import { TheEditorService } from '../the-editor.service';
 })
 
 export class TheToolbar {
-  constructor( private theEditor: TheEditorService ) {}
+  constructor( private TheArchitect: TheArchitect ) {}
   
   callDeleteMod(){
-    this.theEditor.removeSelected();
+    this.TheArchitect.removeSelected();
   }
   callAddMod(){
-    this.theEditor.addMod();
+    this.TheArchitect.addMod();
   }
   callChangeEditMode(){
-    this.theEditor.changeEditMode();
+    this.TheArchitect.changeEditMode();
   }
   callCloneObject(){
-    this.theEditor.cloneObject();
+    this.TheArchitect.cloneObject();
   }
 }

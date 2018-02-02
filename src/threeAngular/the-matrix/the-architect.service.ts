@@ -2,14 +2,14 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 
 import * as THREE from 'three';
-import "./EnableThree.js";
+import "../EnableThree.js";
 import "three/src/loaders/ObjectLoader";
 
 import { Defaults } from "./defaults";
 
 @Injectable()
 
-export class TheEditorService {
+export class TheArchitect {
   
   public defaults = new Defaults;
 
@@ -39,7 +39,6 @@ export class TheEditorService {
 
   constructor() {
     this.plugMeIn();
-
     this.addObject = this.addObject.bind(this);
   }
 
@@ -129,7 +128,7 @@ export class TheEditorService {
   /**
    * Selects an object by id
    */
-  public selectByUuid (id) {
+  public selectByUuid (uuid) {
   }
 
   /**
@@ -144,6 +143,7 @@ export class TheEditorService {
    */
   public deselect () {
     // In Here we will deselect everything
+    this.select(null);
   }
 
   /**
@@ -164,7 +164,12 @@ export class TheEditorService {
    * Reset the Editor
    */
   public reset () {
+		this.camera.copy( this.defaults.camera );
+		this.scene.copy( this.defaults.scene );
 
+		this.objects = [];
+
+		this.theMatrixReloaded.next();
   }
 
   /**
@@ -194,14 +199,13 @@ export class TheEditorService {
     }
     this.editModeChanged.next(this.editMode);
   }
-
   /**
-   * Add fresh mod to scene
+   * Load an object via AJAX from Json file.
    */
-  public addMod () {
+  public loadObjFromJson (path) {
     this.loader = new THREE.ObjectLoader();
     this.loader.load(
-      '../assets/MODs.json',
+      path,
       this.addObject,
       function ( xhr ) {},
       function( err ) {
@@ -209,5 +213,12 @@ export class TheEditorService {
         console.error(err);
       }
     );
+  }
+
+  /**
+   * Add fresh mod to scene. Bye!
+   */
+  public addMod () {
+    this.loadObjFromJson('../assets/MODs.json');
   }
 }
