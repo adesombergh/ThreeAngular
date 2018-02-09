@@ -75,31 +75,30 @@ export class TheArchitect {
     this.scene = this.defaults.scene;
     this.sceneHelpers = this.defaults.sceneHelpers;
     this.loader = new THREE.ObjectLoader();
-    var Archi = this;
     this.loader.load(
       '../assets/MODs.json',
-      function(object){
+      (object)=>{
         object.position.x = 20;object.position.z = -20;
-        Archi.objects.push(object);
-        Archi.scene.add(object); 
-        Archi.theMatrixReloaded.next();
+        this.objects.push(object);
+        this.scene.add(object); 
+        this.theMatrixReloaded.next();
       }
     );
     this.loader.load(
       '../assets/MODs.json',
-      function(object){
+      (object)=>{
         object.position.x = -30;object.position.z = 30;
-        Archi.objects.push(object);
-        Archi.scene.add(object); 
-        Archi.theMatrixReloaded.next();
+        this.objects.push(object);
+        this.scene.add(object); 
+        this.theMatrixReloaded.next();
       }
     );
     this.loader.load(
       '../assets/MODs.json',
-      function(object){
-        Archi.objects.push(object);
-        Archi.scene.add(object); 
-        Archi.theMatrixReloaded.next();
+      (object)=>{
+        this.objects.push(object);
+        this.scene.add(object); 
+        this.theMatrixReloaded.next();
       }
     );
   }
@@ -218,7 +217,15 @@ export class TheArchitect {
    * Select everything
    */
   public selectAll () {
-    // In Here we will select everything
+    this.deselect();
+
+    this.selected = this.objects;
+
+    this.updateNebuchadnezzar();
+    this.updateBoxes();
+    this.selectionChanged.next();
+    this.theMatrixReloaded.next();
+
   }
   
   /**
@@ -332,7 +339,7 @@ export class TheArchitect {
 
   /**
    * Keep's Nebucha synced and centered!!!
-   * This one is tricky! 
+   *              This one is tricky! 
    * Ok, so. Before binding the controllers to nabuchos we want to
    * use the center of the group as anchor point for the controllers,
    * right? Ok let's do it.

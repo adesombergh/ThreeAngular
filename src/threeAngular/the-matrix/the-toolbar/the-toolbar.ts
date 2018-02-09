@@ -40,5 +40,8 @@ export class TheToolbar {
     this.TheArchitect.changeSelectMode();
   }
 
+  callSelectAll(){
+    this.TheArchitect.selectAll();
+  }
 
 }
