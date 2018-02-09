@@ -1,0 +1,117 @@
+.right-menu {
+    position: absolute;
+    width: 250px;
+    z-index: 9999;
+    display: block;
+    top: 5px;
+    right: 5px;
+    width: 300px;
+    transition: right .8s cubic-bezier(0.42, 0, 0.15, 1.4);
+
+    &.active {
+        right: -250px; 
+    }
+    
+    .menu-tab {
+        background-color: rgba(200,200,200,.4);
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 50px;
+        width: 300px;
+    }
+    .tab-title {
+        position: absolute;
+        top: 0;
+        width: 250px;
+        height: 50px;
+        padding: 20px;
+        border-right: 1px solid rgba(0,0,0,.3);
+        border-top: 1px solid rgba(0,0,0,.3);
+        left: auto;
+        right: 0;
+    }
+    .tab-icon {
+        position: absolute;
+        top: 0;
+        width: 50px;
+        height: 50px;
+        float: right;
+        border: 1px solid rgba(0,0,0,.3);
+        border-right: none;
+        left: 0;
+        right: auto;
+    }
+    .tab-icon button {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        background-color: transparent;
+        border: none;
+        padding: 0;
+        font-size: 20px;
+        color: #fff;
+    }
+    .tab-icon button:hover {
+        background-color: rgba(255,255,255,.7);
+        color: rgba(0,0,0,.7);
+    }
+    .menu-content {
+        position: absolute;
+        top: 50px;
+        display: block;
+        width: 200px;
+        background-color: rgba(200,200,200,.4);
+        border: 1px solid rgba(0,0,0,.3);
+        border-top: none;
+        padding: 20px;
+        right: 0;
+        width: 250px;
+    }
+    .submenu {
+        background-color: rgba(0,0,0,.1);
+        padding-bottom: 5px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+    }
+    .menu-title, .badass-button {
+        color: #fff;
+        text-transform: uppercase;
+        background-color: #78B937;
+        padding: 7px 10px;
+        font-size: 24px;
+        margin: 0;
+        display: block;
+        text-decoration: none;
+    }
+    .menu-item {
+        display: block;
+        text-decoration: none;
+        color: #333;
+        margin: 10px 0;
+        padding-left: 20px;
+        font-size: 13px;
+    }
+    .overflower {
+        height: 100px;
+        overflow: scroll;
+    }
+    
+    .hide {
+        display: none;
+    }
+    
+    #history {
+        width: 100%;
+        height: 100%;
+        background-color: none;
+
+    }
+    ul, li {
+        margin: 0;
+        padding: 0;
+    }
+
+}

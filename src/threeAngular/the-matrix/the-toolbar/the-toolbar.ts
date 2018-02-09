@@ -7,8 +7,17 @@ import { TheArchitect } from '../the-architect.service';
 })
 
 export class TheToolbar {
-  constructor( private TheArchitect: TheArchitect ) {}
+  public isActive: boolean = false;
+  public tooltip: string = "";
+
   
+  constructor(
+    public TheArchitect: TheArchitect
+  ) {}
+  
+  
+  
+
   callDeleteMod(){
     this.TheArchitect.removeSelected();
   }
@@ -19,6 +28,17 @@ export class TheToolbar {
     this.TheArchitect.changeEditMode();
   }
   callCloneObject(){
-    this.TheArchitect.cloneObject();
+    this.TheArchitect.cloneSelection();
   }
+
+  setTooltip(tip){
+    this.tooltip = tip;
+    this.isActive = true;
+  }
+
+  callChangeSelectMode(){
+    this.TheArchitect.changeSelectMode();
+  }
+
+
 }
