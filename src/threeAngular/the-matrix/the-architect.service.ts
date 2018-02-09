@@ -217,6 +217,7 @@ export class TheArchitect {
    * Select everything
    */
   public selectAll () {
+    console.log(this.objects);
     this.deselect();
 
     this.selected = this.objects;
