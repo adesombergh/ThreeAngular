@@ -62,7 +62,6 @@ export class TheMatrix implements AfterViewInit {
    * Making The Matrix a better world!
    */
   public render() {
-    // console.log(this.transformControls);
     this.theArchitect.sceneHelpers.updateMatrixWorld();
     this.theArchitect.scene.updateMatrixWorld();
     this.renderer.render(this.theArchitect.scene, this.theArchitect.camera);
@@ -163,6 +162,7 @@ export class TheMatrix implements AfterViewInit {
 
     this.transformControls.addEventListener('change', () => {
       this.transformControls.update();
+      this.theArchitect.nebuchadnezzar.updateRedBox();
       this.render();
     });
 

@@ -15,11 +15,9 @@ export class TheToolbar {
     public TheArchitect: TheArchitect
   ) {}
   
-  
-  
 
   callDeleteMod(){
-    this.TheArchitect.removeSelected();
+    this.TheArchitect.removeSelection();
   }
   callAddMod(){
     this.TheArchitect.addMod();
@@ -30,16 +28,10 @@ export class TheToolbar {
   callCloneObject(){
     this.TheArchitect.cloneSelection();
   }
-
   setTooltip(tip){
     this.tooltip = tip;
     this.isActive = true;
   }
-
-  callChangeSelectMode(){
-    this.TheArchitect.changeSelectMode();
-  }
-
   callSelectAll(){
     this.TheArchitect.selectAll();
   }
