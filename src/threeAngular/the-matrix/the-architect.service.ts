@@ -61,13 +61,14 @@ export class TheArchitect {
     this.scene = this.defaults.scene;
     this.sceneHelpers = this.defaults.sceneHelpers;
     this.nebuchadnezzar = new Nebuchadnezzar(this.scene, this.sceneHelpers);
+
     this.loader = new THREE.ObjectLoader();
     this.loader.load(
       '../assets/MODs.json',
       (object)=>{
         object.position.x = 20;object.position.z = -20;
         this.objects.push(object);
-        this.scene.add(object); 
+        this.scene.add(object);
         this.theMatrixReloaded.next();
       }
     );
@@ -76,7 +77,7 @@ export class TheArchitect {
       (object)=>{
         object.position.x = -30;object.position.z = 30;
         this.objects.push(object);
-        this.scene.add(object); 
+        this.scene.add(object);
         this.theMatrixReloaded.next();
       }
     );
@@ -84,16 +85,16 @@ export class TheArchitect {
       '../assets/MODs.json',
       (object)=>{
         this.objects.push(object);
-        this.scene.add(object); 
+        this.scene.add(object);
         this.theMatrixReloaded.next();
       }
     );
   }
 
   /*************************************************
-   * 
+   *
    *               GENERAL Methods
-   * 
+   *
    *************************************************/
   /**
    * Sets a scene. Useful when you need to load a whole scene. This will overwrite current scene.
@@ -157,9 +158,9 @@ export class TheArchitect {
   }
 
   /*************************************************
-   * 
+   *
    *             SINGLE OBJECT MANIPULATION
-   * 
+   *
    *************************************************/
 
   /**
@@ -191,9 +192,9 @@ export class TheArchitect {
   }
 
   /*************************************************
-   * 
+   *
    *                  SELECTIONS
-   * 
+   *
    *************************************************/
   /**
    * Tell us if the passed object is already in selection array
@@ -203,7 +204,7 @@ export class TheArchitect {
   }
 
   /**
-   * Temporarly strips helpers out of an object and execute 
+   * Temporarly strips helpers out of an object and execute
    * something to this object and then put helpers back
    */
   private stripObject(object, callback) {
@@ -236,7 +237,7 @@ export class TheArchitect {
   public removeSelection() {
     for (let i = this.selected.length-1; i >= 0; i--) {
       const obj = this.selected[i];
-      this.removeObject(obj);    
+      this.removeObject(obj);
     }
     this.deselect();
   }
@@ -275,13 +276,13 @@ export class TheArchitect {
   }
 
   /*************************************************
-   * 
+   *
    *                USER HELPERS
-   * 
+   *
    *************************************************/
 
   /**
-   * This guy updates the helpers upon selection 
+   * This guy updates the helpers upon selection
    */
   private handleSelectionHelpers(clear ? ) {
     if (clear) {
@@ -321,9 +322,9 @@ export class TheArchitect {
   }
 
   /*************************************************
-   * 
+   *
    *                   EVENTS
-   * 
+   *
    *************************************************/
   /**
    * What to do if user clicks an object

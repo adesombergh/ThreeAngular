@@ -9,6 +9,10 @@ export class Nebuchadnezzar extends THREE.Mesh {
   private scene: THREE.Scene;
   private sceneHelpers: THREE.Scene;
 
+  private children: THREE.Mesh;
+  private position: THREE.Matrix4;
+  private updateMatrixWorld: any;
+
   constructor(scene,sceneHelpers) {
     super(
       new THREE.BoxGeometry( 4, 4, 4 ),
@@ -44,12 +48,12 @@ export class Nebuchadnezzar extends THREE.Mesh {
 
   /**
    * Keep's Nebucha synced and centered!!!
-   *              This one is tricky! 
+   *              This one is tricky!
    * Ok, so. Before binding the controllers to nabuchos we want to
    * use the center of the group as anchor point for the controllers,
    * right? Ok let's do it.
    */
-  public update (selected) {    
+  public update (selected) {
     // First we create a temporary group
     let geo = new THREE.BoxGeometry( 2, 2, 2);
     geo.applyMatrix( new THREE.Matrix4().makeTranslation(1,1,1) );
@@ -69,14 +73,14 @@ export class Nebuchadnezzar extends THREE.Mesh {
     selected.forEach(obj => {
       THREE.SceneUtils.attach(obj,this.scene,tempGroup);
     })
-    
+
     // Then we set a Minimum Bounding Box for this group (awesome!)
     this.nebuchasBoundingBox.setFromObject( tempGroup );
-    
+
     // So we can center Nebuchadnezzar in this Box's center and refresh it's vectors
     this.nebuchasBoundingBox.center( this.position );
     this.updateMatrixWorld();
-    
+
     // Then we remove every selected element of the temporary group
     // and add'em to Nebucha
 
@@ -95,7 +99,7 @@ export class Nebuchadnezzar extends THREE.Mesh {
 
     // Piece of cake
   }
-  
+
 
   /**
    * updateRedBox
