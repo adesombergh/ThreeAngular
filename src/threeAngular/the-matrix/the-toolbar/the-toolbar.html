@@ -1,20 +1,30 @@
+<div class="toolbar-tooltip" [class.active]="isActive">{{ tooltip }}</div>
 <div class="toolbar">
   <div class="toolbar-item">
-    <a href="#" id="move" class="hide">Move</a>
-    <a href="#" (click)="callChangeEditMode()">{{ this.TheArchitect.nextMode }}</a>
+    <a href="#" (click)="callChangeEditMode()" (mouseover)="setTooltip( this.TheArchitect.editMode.nextText )" (mouseout)="isActive = false"><i class="material-icons">{{ this.TheArchitect.editMode.nextIcon }}</i></a>
   </div>
   <div class="toolbar-separator"></div>
   <div class="toolbar-item">
-    <a href="#" (click)="callAddMod()">Add</a>
-  </div>
-  <div class="toolbar-item">
-    <a href="#" (click)="callCloneObject()">Clone</a>
-  </div>
-  <div class="toolbar-item">
-    <a href="#">Group</a>
+    <a href="#" (click)="callAddMod()" (mouseover)="setTooltip('Add New Mod')" (mouseout)="isActive = false"><i class="material-icons">add_box</i></a>
   </div>
   <div class="toolbar-separator"></div>
   <div class="toolbar-item">
-      <a href="#" (click)="callDeleteMod()"><i class="material-icons">Delete</i></a>
+    <a href="#" (click)="callCloneObject()" (mouseover)="setTooltip('Clone Selection')" (mouseout)="isActive = false"><i class="material-icons">content_copy</i></a>
   </div>
+  <div class="toolbar-separator"></div>
+  <div class="toolbar-item">
+    <a href="#" (mouseover)="setTooltip('Color')" (mouseout)="isActive = false"><i class="material-icons">tonality</i></a>
+  </div>
+  <div class="toolbar-item">
+    <a href="#" (mouseover)="setTooltip('Decoration')" (mouseout)="isActive = false"><i class="material-icons">style</i></a>
+  </div>
+  <div class="toolbar-separator"></div>
+  <div class="toolbar-item">
+      <a href="#" (click)="callDeleteMod()" (mouseover)="setTooltip('Delete Selection')" (mouseout)="isActive = false"><i class="material-icons">delete</i></a>
+  </div>
+  <div class="toolbar-separator"></div>
+  <div class="toolbar-item">
+      <a href="#" (click)="callSelectAll()" (mouseover)="setTooltip('Select All')" (mouseout)="isActive = false">Select All</a>
+  </div>
+
 </div>

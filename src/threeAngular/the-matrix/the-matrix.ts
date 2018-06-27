@@ -24,51 +24,31 @@ export class TheMatrix implements AfterViewInit {
 
   private raycaster: THREE.Raycaster = new THREE.Raycaster();
   private mouse: THREE.Vector2 = new THREE.Vector2();
-  private selectionBox: THREE.BoxHelper = new THREE.BoxHelper();
-  private box: THREE.Box = new THREE.Box3();
 
 
   /**
-   * THE ARCHITECT
+   * THE ARCHITECT pulls the strings
    */
   constructor( private theArchitect: TheArchitect ) {
     this.render = this.render.bind(this);
 
     theArchitect.theMatrixReloaded$.subscribe(()=> { this.render(); })
-    theArchitect.objSelected$.subscribe( (obj) => { this.selectObject(obj) } )
-    theArchitect.objectRemoved$.subscribe( () => { this.deselect() } )
+    theArchitect.selectionChanged$.subscribe( () => { this.adaptTransformControls() } )
     theArchitect.editModeChanged$.subscribe( (nextMode) => { this.transformControls.setMode( nextMode ) } )
   }
 
 
 
-  /**
-   * Removes all obj helpers
-   */
-  private deselect() {
-		this.transformControls.detach();
-    this.selectionBox.visible = false;
-    this.render();
-  }
 
   /**
-   * Adds helpers to selected object
+   * adaptTransformControls, triggered by changes in Selection
    */
-  private selectObject(object) {
-    this.selectionBox.visible = false;
-		this.transformControls.detach();
-		if ( object !== null && object !== this.theArchitect.scene && object !== this.theArchitect.camera ) {
-      this.box.setFromObject( object );
-			if ( this.box.isEmpty() === false ) {
-				this.selectionBox.setFromObject( object );
-				this.selectionBox.visible = true;
-			}
-			this.transformControls.attach( object );
+  public adaptTransformControls() {
+    this.transformControls.detach();
+    if (this.theArchitect.selected.length){
+      this.transformControls.attach( this.theArchitect.nebuchadnezzar );
     }
-
-    this.render();
   }
-
 
   /**
    * Defines the HTML CANVAS in which we inject The Matrix
@@ -137,15 +117,14 @@ export class TheMatrix implements AfterViewInit {
     // If mouseDown and mouseUp were in the same place (means it's a short click)
     if ( this.onDownPosition.distanceTo( this.onUpPosition ) === 0 ) {
       var intersects = this.getIntersects( this.onUpPosition, this.theArchitect.objects );
-      if ( intersects.length > 0 ) {
-        var object = intersects[ 0 ].object;
-        this.theArchitect.select( object );
+      if(intersects.length==0){
+        this.theArchitect.deselect();
       } else {
-        this.theArchitect.select( null );
+        this.theArchitect.handleClick(intersects[0].object);
       }
-      this.render();
     }
   }
+
 
   /**
    * Send a virtual LASER BEAM to determine which objects are in the mouse path. Remember it's a 3D World!
@@ -156,16 +135,6 @@ export class TheMatrix implements AfterViewInit {
     return this.raycaster.intersectObjects( objects );
   }
 
-  /**
-   * Adds Helpers
-   */
-  private addHelpers() {
-    this.selectionBox.material.depthTest = false;
-    this.selectionBox.material.transparent = true;
-    this.selectionBox.visible = false;
-    this.theArchitect.sceneHelpers.add( this.selectionBox );    
-  }
-
 
   /**
    * Enable Moving inside The Matrix
@@ -174,7 +143,11 @@ export class TheMatrix implements AfterViewInit {
     this.controls = new THREE.OrbitControls(this.theArchitect.camera);
     this.controls.rotateSpeed = 1.0;
     this.controls.zoomSpeed = 1.2;
-    this.controls.addEventListener('change', this.render);
+
+    this.controls.addEventListener('change', ()=>{
+      this.transformControls.update();
+      this.render()
+    });
   }
 
   /**
@@ -185,15 +158,15 @@ export class TheMatrix implements AfterViewInit {
     this.transformControls.setTranslationSnap( 2 );
     this.transformControls.setRotationSnap( THREE.Math.degToRad( 45 ) );
     this.transformControls.setSpace( 'world' );
+    this.transformControls.name = "controls";
 
-    let TheMatrix: TheMatrix = this; // Hacking the system...
-    this.transformControls.addEventListener('change', function (evt) {
-      if ( this.object !== undefined ) {
-        TheMatrix.selectionBox.setFromObject( this.object );
-      }
-      TheMatrix.render();
-    } );
+    this.transformControls.addEventListener('change', () => {
+      this.transformControls.update();
+      this.theArchitect.nebuchadnezzar.updateRedBox();
+      this.render();
+    });
 
+    this.theArchitect.scene.add( this.theArchitect.nebuchadnezzar );
     this.theArchitect.sceneHelpers.add( this.transformControls );
   }
 
@@ -206,7 +179,6 @@ export class TheMatrix implements AfterViewInit {
       antialias: true,
     });
     this.calculateAspectRatio();
-    this.addHelpers();
 
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;

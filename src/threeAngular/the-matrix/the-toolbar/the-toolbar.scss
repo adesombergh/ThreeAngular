@@ -1,26 +1,36 @@
 the-toolbar {
-    
+    left: 50%;
+    transform: translate(-50%);
+    position: absolute;
+    bottom: 5px;
+    z-index: 99999;
+
+    .toolbar-tooltip {
+        background-color: #444;
+        color: #eee;
+        display: none;
+        padding: 0 3px;
+        margin-bottom: 2px;
+        &.active {
+            display: inline-block;
+        }
+    }
+
     .toolbar {
-        position: absolute;
-        z-index: 99999;
-        left: 50%;
-        transform: translate(-50%);
-        bottom: 5px;
         background-color: rgba(255,255,255,.8);
         border: 1px solid rgba(0,0,0,.3);
-        width: auto;
-        right: auto;
+
+        .toolbar-item {
+            display: inline-block;
+            padding: 10px;
+        }
+        .toolbar-separator{
+            display: inline-block;
+            width: 2px;
+            background-color: rgba(0,0,0,.4);
+            height: 20px;
+        }
     }
     
-    .toolbar-item {
-        display: inline-block;
-        padding: 10px;
-    }
-    .toolbar-separator{
-        display: inline-block;
-        width: 2px;
-        background-color: rgba(0,0,0,.4);
-        height: 20px;
-    }
     
 }

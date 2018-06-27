@@ -1,0 +1,27 @@
+<div class="right-menu" [class.active]="isActive">
+  <div class="menu-tab">
+
+    <div class="tab-icon">
+      <button (click)="activeButton()"><i class="material-icons">layers</i></button>
+    </div>
+    <div class="tab-title">Tools</div>
+  </div>
+
+  <div class="menu-content">
+
+    <div class="submenu">
+      <p class="menu-title">Objects</p>
+      <div class="overflower">
+        <ul id="objects"></ul>
+      </div>
+    </div>
+
+    <div class="submenu">
+      <p class="menu-title">History</p>
+      <div class="overflower">
+        <ul id="history"></ul>
+      </div>
+    </div>
+
+  </div>
+</div>

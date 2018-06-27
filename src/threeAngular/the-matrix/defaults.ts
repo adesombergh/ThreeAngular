@@ -43,8 +43,18 @@ export class Defaults {
         this.scene.add(light2);
 
         this.sceneHelpers = new THREE.Scene();
-  
+
         var grid = new THREE.GridHelper(400, 100, 0xbbbbbb, 0x888888);
+        grid.name = "grid";
         this.sceneHelpers.add(grid);
+    }
+
+    public selectionBox(object){
+        let selectionBox = new THREE.BoxHelper();
+        selectionBox.material.depthTest = false;
+        selectionBox.material.transparent = true;
+        selectionBox.name = "yellowBox";
+        selectionBox.setFromObject( object );
+        return selectionBox;
     }
 }
