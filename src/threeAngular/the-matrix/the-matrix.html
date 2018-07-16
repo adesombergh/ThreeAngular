@@ -1,6 +1,6 @@
 <left-menu></left-menu>
 <right-menu></right-menu>
-<canvas #theCanvas (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)">
+<canvas #theCanvas (mousedown)="onMouseDown($event)" (mouseup)="onMouseUp($event)" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
 </canvas>
 <the-toolbar
     (addMod)="addMod()"

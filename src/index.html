@@ -44,6 +44,13 @@
 
   <!-- The main bundle js is generated during the build process -->
   <script src="build/main.js"></script>
-
+  <script>
+  document.documentElement.addEventListener('gesturestart', function (event){
+    event.preventDefault();
+  }, false);
+  document.documentElement.addEventListener('touchmove', function (event){
+    event.preventDefault();
+  }, false);
+  </script>
 </body>
 </html>

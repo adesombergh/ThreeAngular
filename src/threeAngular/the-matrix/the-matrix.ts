@@ -25,6 +25,15 @@ export class TheMatrix implements AfterViewInit {
   private raycaster: THREE.Raycaster = new THREE.Raycaster();
   private mouse: THREE.Vector2 = new THREE.Vector2();
 
+  /**
+   * Making The Matrix a better world!
+   */
+  public render() {
+    this.theArchitect.sceneHelpers.updateMatrixWorld();
+    this.theArchitect.scene.updateMatrixWorld();
+    this.renderer.render(this.theArchitect.scene, this.theArchitect.camera);
+    this.renderer.render(this.theArchitect.sceneHelpers, this.theArchitect.camera);
+  }
 
   /**
    * THE ARCHITECT pulls the strings
@@ -59,18 +68,8 @@ export class TheMatrix implements AfterViewInit {
   }
 
   /**
-   * Making The Matrix a better world!
-   */
-  public render() {
-    this.theArchitect.sceneHelpers.updateMatrixWorld();
-    this.theArchitect.scene.updateMatrixWorld();
-    this.renderer.render(this.theArchitect.scene, this.theArchitect.camera);
-    this.renderer.render(this.theArchitect.sceneHelpers, this.theArchitect.camera);
-  }
-
-  /**
    * Calculate Aspect Ratio of The Matrix. Avoids compression and streching of the scene.
-   */  
+   */
   public calculateAspectRatio(){
     this.canvas.style.width = "100%";
     this.canvas.style.height = "100%";
@@ -82,6 +81,7 @@ export class TheMatrix implements AfterViewInit {
 
   @HostListener('window:resize', ['$event'])
   public onResize(event: Event) {
+    this.calculateAspectRatio();
     this.render();
   }
 
@@ -96,16 +96,25 @@ export class TheMatrix implements AfterViewInit {
   /**
    * Stocks mouse position as vector on incoming click
    */
-  public onMouseDown(event: MouseEvent) {
+  public onMouseDown( event : MouseEvent ) {
     var array = this.getMousePosition( this.canvas, event.clientX, event.clientY );
+    this.onDownPosition.fromArray( array );
+  }
+  public onTouchStart( event : TouchEvent ) {
+    var array = this.getMousePosition( this.canvas, event.touches[0].clientX, event.touches[0].clientY );
     this.onDownPosition.fromArray( array );
   }
 
   /**
    * Stocks mouse position as vector on outgoing click then...
    */
-  public onMouseUp( event ) {
+  public onMouseUp( event : MouseEvent ) {
     var array = this.getMousePosition( this.canvas, event.clientX, event.clientY );
+    this.onUpPosition.fromArray( array );
+    this.handleClick();
+  }
+  public onTouchEnd( event : TouchEvent ) {
+    var array = this.getMousePosition( this.canvas, event.changedTouches[0].clientX, event.changedTouches[0].clientY );
     this.onUpPosition.fromArray( array );
     this.handleClick();
   }
@@ -151,7 +160,7 @@ export class TheMatrix implements AfterViewInit {
   }
 
   /**
-   * Give us power to control objects in The Matrix 
+   * Give us power to control objects in The Matrix
    */
   public addTransformControls() {
     this.transformControls = new THREE.TransformControls(this.theArchitect.camera, this.canvas);
@@ -199,4 +208,3 @@ export class TheMatrix implements AfterViewInit {
   }
 
 }
-  
